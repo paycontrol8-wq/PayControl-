@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -44,6 +44,18 @@
             position: relative;
             padding: 0.75rem;
             min-height: 100vh;
+        }
+
+        /* OCULTA ABSOLUTAMENTE TODO EL SISTEMA DE ADMINISTRACIÓN SI ES MODO TARJETA CLIENTE (?card=ID) */
+        body.viewing-card header,
+        body.viewing-card nav,
+        body.viewing-card .page-section,
+        body.viewing-card footer {
+            display: none !important;
+        }
+
+        body.viewing-card #client-card-view {
+            display: flex !important;
         }
 
         /* Header y Navegación Estáticos */
@@ -305,7 +317,6 @@
             margin-top: 0.15rem;
         }
 
-        /* NOTIFICACIÓN ENCIMA DEL ESTADO DEL CLIENTE */
         .status-container {
             position: relative;
             display: inline-flex;
@@ -737,9 +748,56 @@
         </div>
     </section>
 
+    <!-- VISTA EXCLUSIVA Y EXCLUSIVAMENTE PARA EL CLIENTE (?card=ID) -->
+    <div id="client-card-view" style="display: none; flex-direction: column; gap: 1rem; flex: 1; padding-top: 1rem;">
+        <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);">
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--card-border); padding-bottom: 0.75rem;">
+                <div>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Estado de Cartera</span>
+                    <h2 id="card-client-name" style="font-size: 1.3rem; font-weight: 800; color: var(--text-main);">--</h2>
+                </div>
+                <div id="card-status-badge"></div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+                <div style="background: var(--bg-color); padding: 0.85rem; border-radius: 10px; border: 1px solid var(--card-border);">
+                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">SALDO DEUDOR</span>
+                    <span id="card-balance" style="font-size: 1.2rem; font-weight: 800; color: var(--danger);">$0</span>
+                </div>
+                <div style="background: var(--bg-color); padding: 0.85rem; border-radius: 10px; border: 1px solid var(--card-border);">
+                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">CUOTA DIARIA</span>
+                    <span id="card-daily" style="font-size: 1.2rem; font-weight: 800; color: var(--primary);">$0</span>
+                </div>
+            </div>
+
+            <div style="background: var(--bg-color); padding: 0.85rem; border-radius: 10px; border: 1px solid var(--card-border); display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.8rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);">Monto Préstamo:</span>
+                    <strong id="card-loan-amount">$0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);">Total a Pagar:</span>
+                    <strong id="card-total-pay">$0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);">Estado Atrasos:</span>
+                    <strong id="card-delayed-text" style="color: var(--success);">Al día</strong>
+                </div>
+            </div>
+
+            <div>
+                <h4 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">Cuotas / Abonos Realizados</h4>
+                <div id="card-history-list" style="background: var(--bg-color); border: 1px solid var(--card-border); border-radius: 10px; padding: 0.5rem; max-height: 220px; overflow-y: auto;">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
     <!-- FOOTER / POLÍTICA DE PRIVACIDAD -->
     <footer>
-        <a href="go:payc">Política de Privacidad</a>
+        <a href="privacidad.html" target="_blank">Política de Privacidad</a>
     </footer>
 </div>
 
@@ -817,6 +875,10 @@
             <button type="submit" class="btn btn-primary" id="pay-submit-btn">Confirmar Abono</button>
         </form>
 
+        <button type="button" class="btn" onclick="shareCardLinkWhatsApp()" style="background: #25d366; color: white; width: 100%; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-weight: bold;">
+            📲 Compartir Tarjeta del Cliente por WhatsApp
+        </button>
+
         <div class="history-section">
             <div class="history-title">Historial de Pagos</div>
             <div id="history-list"></div>
@@ -855,6 +917,7 @@
       addDoc, 
       onSnapshot, 
       doc, 
+      getDoc,
       updateDoc, 
       deleteDoc,
       query,
@@ -882,7 +945,7 @@
   window.auth = auth;
   window.db = db;
   window.authMethods = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile };
-  window.fsMethods = { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, where };
+  window.fsMethods = { collection, addDoc, onSnapshot, doc, getDoc, updateDoc, deleteDoc, query, where };
 
   let loans = [];
   const todayStr = new Date().toISOString().split('T')[0];
@@ -932,7 +995,6 @@
       }, 3500);
   };
 
-  /* CALCULAR CUOTAS/DÍAS EN MORA */
   function getDelayedDays(loan) {
       if (!loan || loan.balance <= 0) return 0;
 
@@ -962,6 +1024,103 @@
       return Math.max(0, delayedDays);
   }
 
+  /* VERIFICA SI LA URL TRAE UN ?card=ID Y MUESTRA EXCLUSIVAMENTE LA TARJETA DEL CLIENTE */
+  function checkPublicCardView() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const cardId = urlParams.get('card');
+
+      if (cardId) {
+          document.body.classList.add('viewing-card');
+
+          const { doc, onSnapshot } = window.fsMethods;
+          const docRef = doc(window.db, "loans", cardId);
+
+          onSnapshot(docRef, (docSnap) => {
+              if (docSnap.exists()) {
+                  const loan = { id: docSnap.id, ...docSnap.data() };
+                  renderPublicCard(loan);
+              } else {
+                  document.getElementById('client-card-view').innerHTML = `
+                      <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                          <h3>❌ Tarjeta No Encontrada</h3>
+                          <p style="font-size: 0.85rem; margin-top: 0.5rem;">El préstamo solicitado no existe o ha sido saldado/eliminado.</p>
+                      </div>`;
+              }
+          }, (error) => {
+              console.error("Error escuchando la tarjeta pública:", error);
+          });
+
+          return true;
+      }
+      return false;
+  }
+
+  function renderPublicCard(loan) {
+      const delayedDays = getDelayedDays(loan);
+      const isFullyPaid = loan.balance === 0;
+
+      document.getElementById('card-client-name').innerText = loan.client;
+      document.getElementById('card-balance').innerText = `$${loan.balance.toLocaleString()}`;
+      document.getElementById('card-daily').innerText = `$${loan.dailyPayment.toLocaleString()}`;
+      document.getElementById('card-loan-amount').innerText = `$${loan.amount.toLocaleString()}`;
+      document.getElementById('card-total-pay').innerText = `$${loan.totalToPay.toLocaleString()}`;
+
+      const badgeEl = document.getElementById('card-status-badge');
+      const delayEl = document.getElementById('card-delayed-text');
+
+      if (isFullyPaid) {
+          badgeEl.innerHTML = '<span class="badge badge-completed">Saldado</span>';
+          delayEl.innerHTML = '<b style="color: var(--success);">Préstamo Completado</b>';
+      } else if (delayedDays > 0) {
+          badgeEl.innerHTML = `<span class="badge badge-pending">${delayedDays} Día(s) Atrasado</span>`;
+          delayEl.innerHTML = `<b style="color: var(--danger);">${delayedDays} cuota(s) atrasada(s)</b>`;
+      } else {
+          badgeEl.innerHTML = '<span class="badge badge-partially-paid">Al Día</span>';
+          delayEl.innerHTML = '<b style="color: var(--success);">Sin atrasos registrados</b>';
+      }
+
+      const historyList = document.getElementById('card-history-list');
+      historyList.innerHTML = '';
+
+      if (!loan.payments || loan.payments.length === 0) {
+          historyList.innerHTML = `<div style="text-align: center; font-size: 0.75rem; color: var(--text-muted); padding: 1rem;">No hay cuotas o abonos registrados todavía.</div>`;
+      } else {
+          loan.payments.forEach(p => {
+              const item = document.createElement('div');
+              item.className = 'history-item';
+              item.innerHTML = `
+                  <span class="history-date">📅 ${p.date}</span>
+                  <span class="history-amount">+$${p.amount.toLocaleString()}</span>
+              `;
+              historyList.appendChild(item);
+          });
+      }
+  }
+
+  /* GENERA EL ENLACE EXACTO A LA TARJETA PÚBLICA DEL CLIENTE (?card=ID) */
+  window.shareCardLinkWhatsApp = function() {
+      if (!currentActiveLoan) return;
+
+      const phone = currentActiveLoan.phone ? currentActiveLoan.phone.replace(/\D/g, '') : '';
+      if (!phone) {
+          window.showToast("El cliente no tiene un teléfono celular registrado.");
+          return;
+      }
+
+      // Obtiene la dirección actual completa dinámicamente y le añade la variable ?card=ID
+      const cardUrl = `${window.location.origin}${window.location.pathname}?card=${currentActiveLoan.id}`;
+
+      const mensaje = 
+`👋 Hola *${currentActiveLoan.client}*,
+Consulta tu tarjeta digital de cartera con tu estado de cuenta y cuotas pagadas ingresando aquí:
+🔗 ${cardUrl}
+
+_¡Gracias por tu puntualidad!_`;
+
+      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(mensaje)}`;
+      window.open(waUrl, '_blank');
+  };
+
   function initAuthListener() {
       if (!window.auth) {
           setTimeout(initAuthListener, 100);
@@ -969,8 +1128,12 @@
       }
       const { onAuthStateChanged } = window.authMethods;
 
-      onAuthStateChanged(window.auth, (user) => {
+      onAuthStateChanged(window.auth, async (user) => {
           currentUser = user;
+          const isCardView = checkPublicCardView();
+          
+          if (isCardView) return;
+
           const brandTitleEl = document.getElementById('app-brand-name');
           const sessionBtn = document.getElementById('btn-session');
 
