@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayControl - Gestión de Cobranza</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --input-bg: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: relative;
+            padding: 0.75rem;
+            min-height: 100vh;
+        }
+
+        /* Header y Navegación Estáticos */
+        header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-color);
+            z-index: 100;
+        }
+
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding-right: 5rem;
+        }
+
+        .brand-title span {
+            color: var(--primary);
+        }
+
+        .header-sub-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .session-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--primary);
+            border-radius: 6px;
+            padding: 0.25rem 0.6rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .session-btn.logged-in {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: var(--danger);
+        }
+
+        .session-btn.logged-in:hover {
+            background: var(--danger);
+            color: #ffffff;
+        }
+
+        .date-badge {
+            font-size: 0.75rem;
+            background: var(--card-bg);
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+        }
+
+        .network-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.25rem 0.55rem;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .network-badge.online {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .network-badge.offline {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .nav-pills {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--card-bg);
+            padding: 0.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            position: sticky;
+            top: 4.8rem;
+            background-color: var(--card-bg);
+            z-index: 99;
+        }
+
+        .pill-btn {
+            flex: 1;
+            padding: 0.6rem;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .pill-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .pill-btn-new:not(.active) {
+            color: var(--primary);
+        }
+
+        .page-section {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .page-section.active {
+            display: flex;
+        }
+
+        /* Dashboard y Títulos de Sección */
+        .section-subtitle {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.4rem;
+            margin-bottom: -0.2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.6rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 0.85rem;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .stat-value.primary { color: var(--primary); }
+        .stat-value.success { color: var(--success); }
+        .stat-value.warning { color: var(--warning); }
+        .stat-value.danger { color: var(--danger); }
+
+        /* Buscador y Tabla */
+        .search-box input {
+            width: 100%;
+            padding: 0.65rem 0.85rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+        }
+
+        .table-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.75rem; 
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-muted);
+            padding: 0.5rem 0.5rem;
+            font-weight: 600;
+            font-size: 0.725rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        td {
+            padding: 0.55rem 0.5rem;
+            border-bottom: 1px solid var(--card-border);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .row-paid { background-color: rgba(16, 185, 129, 0.05); opacity: 0.65; }
+        .row-partially-paid { background-color: rgba(59, 130, 246, 0.08); }
+        .row-pending { background-color: transparent; }
+
+        .client-click {
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            text-decoration: underline dotted var(--text-muted);
+            font-size: 0.775rem;
+        }
+
+        .client-click:hover { color: var(--primary); }
+
+        .client-sub-text {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-top: 0.15rem;
+        }
+
+        /* NOTIFICACIÓN ENCIMA DEL ESTADO DEL CLIENTE */
+        .status-container {
+            position: relative;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-top: 0.4rem;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -0.3rem;
+            right: -0.3rem;
+            background: var(--danger);
+            color: #ffffff;
+            font-size: 0.6rem;
+            font-weight: 800;
+            height: 1.15rem;
+            min-width: 1.15rem;
+            padding: 0 0.25rem;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--card-bg);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            z-index: 2;
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.45rem;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .badge-pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-partially-paid { background: rgba(59, 130, 246, 0.15); color: var(--primary); border: 1px solid rgba(59, 130, 246, 0.3); }
+        .badge-completed { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+
+        /* Formulario Responsivo */
+        .form-card-container {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            width: 100%;
+        }
+
+        .form-group label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.65rem;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .btn {
+            padding: 0.65rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-secondary { background: var(--card-border); color: var(--text-main); }
+        .btn-danger { background: var(--danger); color: #fff; }
+
+        .btn-xs {
+            padding: 0.15rem 0.35rem;
+            font-size: 0.65rem;
+            border-radius: 4px;
+        }
+
+        .actions-wrapper {
+            display: flex;
+            gap: 0.25rem;
+            justify-content: flex-end;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.75rem;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #10b981;
+            color: #ffffff;
+            padding: 0.75rem 1.25rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .toast-notification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        dialog {
+            margin: auto;
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.1rem;
+            width: 92%;
+            max-width: 420px;
+        }
+
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .auth-toggle {
+            font-size: 0.8rem;
+            color: var(--primary);
+            text-align: center;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .history-section {
+            border-top: 1px solid var(--card-border);
+            padding-top: 0.6rem;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .history-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            padding: 0.25rem 0;
+            border-bottom: 1px dashed var(--card-border);
+        }
+
+        .history-date { color: var(--text-muted); }
+        .history-amount { font-weight: 600; color: var(--success); }
+        .empty-history { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
+
+        .client-extra-info {
+            background: var(--input-bg);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .client-extra-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--text-muted);
+        }
+
+        .client-extra-item strong {
+            color: var(--text-main);
+        }
+
+        .btn-wa {
+            background: #25d366;
+            color: white;
+            text-decoration: none;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 1rem 0;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--card-border);
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <button id="btn-session" class="session-btn" onclick="handleSessionButtonClick()">🔑 Entrar</button>
+        <div class="brand-title">
+            <span id="app-brand-name">PayControl</span>
+        </div>
+        <div class="header-sub-wrapper">
+            <span id="network-status" class="network-badge online">🟢 En línea</span>
+            <span class="date-badge" id="current-date">--</span>
+        </div>
+    </header>
+
+    <nav class="nav-pills">
+        <button class="pill-btn active" id="btn-tab-route" onclick="showSection('route-section', this)">Ruta del Día</button>
+        <button class="pill-btn" onclick="showSection('dashboard-section', this)">Métricas</button>
+        <button class="pill-btn pill-btn-new" id="btn-tab-new" onclick="showSection('new-loan-section', this)">+ Nuevo</button>
+    </nav>
+
+    <!-- SECCIÓN 1: RUTA DEL DÍA -->
+    <section id="route-section" class="page-section active">
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Buscar por cliente o dirección..." onkeyup="window.render()">
+        </div>
+
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Cuota</th>
+                        <th>Saldo</th>
+                        <th>Estado</th>
+                        <th style="text-align: right;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="loans-table-body">
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 2: MÉTRICAS DE COBRANZA -->
+    <section id="dashboard-section" class="page-section">
+        <h4 class="section-subtitle">Recaudación de Abonos</h4>
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <span class="stat-label">Cobrado Hoy</span>
+                <span class="stat-value success" id="collected-today">$0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Cobrado este Mes</span>
+                <span class="stat-value success" id="collected-month">$0</span>
+            </div>
+            <div class="stat-card" style="grid-column: span 2;">
+                <span class="stat-label">Total Recaudado (Histórico)</span>
+                <span class="stat-value success" id="collected-total">$0</span>
+            </div>
+        </div>
+
+        <h4 class="section-subtitle">Estado de Cartera Pendiente</h4>
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <span class="stat-label">Clientes Activos</span>
+                <span class="stat-value primary" id="total-clients">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Esperado Hoy</span>
+                <span class="stat-value warning" id="expected-today">$0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Capital Prestado</span>
+                <span class="stat-value" id="total-loaned">$0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Interés Pendiente</span>
+                <span class="stat-value warning" id="total-interest">$0</span>
+            </div>
+            <div class="stat-card" style="grid-column: span 2;">
+                <span class="stat-label">Saldo Pendiente Total por Cobrar</span>
+                <span class="stat-value danger" id="total-pending">$0</span>
+            </div>
+        </div>
+
+        <h4 class="section-subtitle">Control de Morosidad</h4>
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <span class="stat-label">Cuotas Atrasadas Totales</span>
+                <span class="stat-value danger" id="total-delayed-cuotas">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Monto Atrasado en Mora</span>
+                <span class="stat-value danger" id="total-delayed-amount">$0</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 3: REGISTRAR PRÉSTAMO -->
+    <section id="new-loan-section" class="page-section">
+        <div class="form-card-container">
+            <h3 id="form-title" style="font-size: 1.05rem;">Registrar Préstamo</h3>
+            <div id="loan-error-msg" class="error-message"></div>
+
+            <form class="form-card" id="loan-form">
+                <input type="hidden" id="editing-loan-id" value="">
+                
+                <div class="form-group">
+                    <label for="client-name">Nombre del Cliente *</label>
+                    <input type="text" id="client-name" placeholder="Ej: Juan Pérez" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="client-phone">Celular / WhatsApp <span style="font-weight:normal; opacity:0.7;">(Opcional)</span></label>
+                        <input type="tel" id="client-phone" placeholder="Ej: 3001234567">
+                    </div>
+                    <div class="form-group">
+                        <label for="client-address">Dirección <span style="font-weight:normal; opacity:0.7;">(Opcional)</span></label>
+                        <input type="text" id="client-address" placeholder="Ej: Calle 10 # 4-20">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="loan-amount">Monto ($) *</label>
+                        <input type="number" id="loan-amount" min="1" placeholder="Ej: 100000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loan-interest">Interés (%) *</label>
+                        <input type="number" id="loan-interest" min="0" value="20" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="loan-days">Días para pagar *</label>
+                    <input type="number" id="loan-days" min="1" value="30" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 0.25rem;">Guardar Préstamo</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- FOOTER / POLÍTICA DE PRIVACIDAD -->
+    <footer>
+        <a href="go:payc">Política de Privacidad</a>
+    </footer>
+</div>
+
+<!-- TOAST DE NOTIFICACIÓN FLOTANTE -->
+<div id="toast-notification" class="toast-notification"></div>
+
+<!-- MODAL: LOGIN / REGISTRO FIREBASE AUTH -->
+<dialog id="user-auth-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="auth-modal-title" style="font-size: 1.05rem;">Iniciar Sesión</h3>
+            <button class="modal-close" onclick="closeAuthModal()">✕</button>
+        </div>
+        <div id="auth-error-msg" class="error-message"></div>
+
+        <form id="user-auth-form" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div class="form-group" id="group-reg-name" style="display: none;">
+                <label for="auth-name">Nombre o Empresa</label>
+                <input type="text" id="auth-name" placeholder="Ej: Inversiones Gómez">
+            </div>
+
+            <div class="form-group">
+                <label for="auth-email">Correo Electrónico</label>
+                <input type="email" id="auth-email" placeholder="correo@ejemplo.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="auth-password">Contraseña</label>
+                <input type="password" id="auth-password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="auth-submit-btn" style="margin-top: 0.25rem;">Entrar</button>
+        </form>
+
+        <span class="auth-toggle" id="auth-toggle-btn" onclick="toggleAuthMode()">¿No tienes cuenta? Regístrate aquí</span>
+    </div>
+</dialog>
+
+<!-- MODAL: CONFIRMAR CIERRE DE SESIÓN -->
+<dialog id="logout-confirm-modal">
+    <div class="modal-content">
+        <h3 style="font-size: 1.05rem;">Cerrar Sesión</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">¿Estás seguro de que deseas salir de tu cuenta?</p>
+        <div style="display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 0.4rem;">
+            <button class="btn btn-secondary" onclick="closeLogoutConfirmModal()">Cancelar</button>
+            <button class="btn btn-danger" onclick="confirmLogout()">Sí, salir</button>
+        </div>
+    </div>
+</dialog>
+
+<!-- MODAL: REGISTRAR ABONO -->
+<dialog id="pay-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modal-client-name" style="font-size: 1.05rem;">Abonar</h3>
+            <button class="modal-close" onclick="closePayModal()">✕</button>
+        </div>
+
+        <div id="modal-client-extra" class="client-extra-info"></div>
+
+        <p id="modal-client-info" style="font-size: 0.8rem; color: var(--text-muted);"></p>
+
+        <form id="pay-form" style="display: flex; flex-direction: column; gap: 0.65rem;">
+            <input type="hidden" id="modal-loan-id">
+            <div id="pay-error-msg" class="error-message"></div>
+            
+            <div class="form-group">
+                <label for="pay-amount">Monto del Abono ($)</label>
+                <div style="display: flex; gap: 0.4rem;">
+                    <input type="number" id="pay-amount" min="1" step="any" style="flex: 1;" required>
+                    <button type="button" class="btn btn-secondary" onclick="fillTotalPayment()" style="font-size: 0.75rem; padding: 0 0.5rem;">Total</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="pay-submit-btn">Confirmar Abono</button>
+        </form>
+
+        <div class="history-section">
+            <div class="history-title">Historial de Pagos</div>
+            <div id="history-list"></div>
+        </div>
+    </div>
+</dialog>
+
+<!-- MODAL: ELIMINAR -->
+<dialog id="confirm-modal">
+    <div class="modal-content">
+        <h3 style="font-size: 1.05rem;">Confirmar eliminación</h3>
+        <p id="confirm-modal-text" style="font-size: 0.85rem; color: var(--text-muted);"></p>
+        <div style="display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 0.4rem;">
+            <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancelar</button>
+            <button class="btn btn-danger" id="confirm-modal-btn">Eliminar</button>
+        </div>
+    </div>
+</dialog>
+
+<!-- SDK DE FIREBASE AUTH & FIRESTORE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      signOut, 
+      onAuthStateChanged,
+      updateProfile 
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { 
+      initializeFirestore,
+      persistentLocalCache,
+      persistentMultipleTabManager,
+      collection, 
+      addDoc, 
+      onSnapshot, 
+      doc, 
+      updateDoc, 
+      deleteDoc,
+      query,
+      where
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDdUMd5cW0yxFlpHjV4fPIcRlnY0a8KrCI",
+    authDomain: "pagodiario-43125.firebaseapp.com",
+    projectId: "pagodiario-43125",
+    storageBucket: "pagodiario-43125.firebasestorage.app",
+    messagingSenderId: "596142638528",
+    appId: "1:596142638528:web:98881bd703b87796a27425"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  
+  const db = initializeFirestore(app, {
+      localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager()
+      })
+  });
+
+  window.auth = auth;
+  window.db = db;
+  window.authMethods = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile };
+  window.fsMethods = { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, where };
+
+  let loans = [];
+  const todayStr = new Date().toISOString().split('T')[0];
+  let pendingDeleteLoanId = null;
+  let currentActiveLoan = null;
+  let currentUser = null;
+  let isRegisterMode = false;
+  let unsubscribeFirestore = null;
+
+  function updateNetworkStatus() {
+      const netBadge = document.getElementById('network-status');
+      if (navigator.onLine) {
+          netBadge.className = 'network-badge online';
+          netBadge.innerText = '🟢 En línea';
+      } else {
+          netBadge.className = 'network-badge offline';
+          netBadge.innerText = '🟠 Sin Conexión';
+      }
+  }
+
+  window.addEventListener('online', () => {
+      updateNetworkStatus();
+      window.showToast("Conexión restablecida. Sincronizando datos...");
+  });
+
+  window.addEventListener('offline', () => {
+      updateNetworkStatus();
+      window.showToast("Modo sin conexión activado. Tus abonos se guardarán localmente.");
+  });
+
+  updateNetworkStatus();
+
+  function getTodayDateFormatted() {
+      return new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', { 
+      day: 'numeric', month: 'short'
+  });
+
+  window.showToast = function(message) {
+      const toast = document.getElementById('toast-notification');
+      toast.innerText = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+          toast.classList.remove('show');
+      }, 3500);
+  };
+
+  /* CALCULAR CUOTAS/DÍAS EN MORA */
+  function getDelayedDays(loan) {
+      if (!loan || loan.balance <= 0) return 0;
+
+      let startDate = new Date();
+      if (loan.createdAt) {
+          if (loan.createdAt.includes('-')) {
+              const [y, m, d] = loan.createdAt.split('-');
+              startDate = new Date(y, m - 1, d);
+          } else if (loan.createdAt.includes('/')) {
+              const [d, m, y] = loan.createdAt.split('/');
+              startDate = new Date(y, m - 1, d);
+          }
+      }
+
+      const today = new Date();
+      startDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+
+      const diffTime = today - startDate;
+      const daysElapsed = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+
+      const expectedPaymentsCount = daysElapsed;
+      const totalPaid = (loan.payments || []).reduce((sum, p) => sum + p.amount, 0);
+      const paidCuotas = loan.dailyPayment > 0 ? (totalPaid / loan.dailyPayment) : 0;
+
+      const delayedDays = Math.ceil(expectedPaymentsCount - paidCuotas);
+      return Math.max(0, delayedDays);
+  }
+
+  function initAuthListener() {
+      if (!window.auth) {
+          setTimeout(initAuthListener, 100);
+          return;
+      }
+      const { onAuthStateChanged } = window.authMethods;
+
+      onAuthStateChanged(window.auth, (user) => {
+          currentUser = user;
+          const brandTitleEl = document.getElementById('app-brand-name');
+          const sessionBtn = document.getElementById('btn-session');
+
+          if (user) {
+              const displayName = user.displayName || user.email.split('@')[0];
+              brandTitleEl.innerText = `PayControl - ${displayName}`;
+              sessionBtn.className = 'session-btn logged-in';
+              sessionBtn.innerText = '🚪 Salir';
+              sessionBtn.title = 'Cerrar sesión';
+
+              subscribeToUserLoans(user.uid);
+          } else {
+              brandTitleEl.innerText = 'PayControl';
+              sessionBtn.className = 'session-btn';
+              sessionBtn.innerText = '🔑 Entrar';
+              sessionBtn.title = 'Iniciar sesión';
+
+              if (unsubscribeFirestore) {
+                  unsubscribeFirestore();
+                  unsubscribeFirestore = null;
+              }
+              loans = [];
+              
+              const activeSec = document.querySelector('.page-section.active');
+              if (activeSec && activeSec.id === 'new-loan-section') {
+                  window.showSection('route-section', document.getElementById('btn-tab-route'));
+              } else {
+                  window.render();
+              }
+          }
+      });
+  }
+  initAuthListener();
+
+  function subscribeToUserLoans(userId) {
+      if (!window.db) return;
+      
+      if (unsubscribeFirestore) {
+          unsubscribeFirestore();
+      }
+
+      const { collection, query, where, onSnapshot } = window.fsMethods;
+      const q = query(collection(window.db, "loans"), where("userId", "==", userId));
+
+      unsubscribeFirestore = onSnapshot(q, (snapshot) => {
+          loans = [];
+          snapshot.forEach((docSnapshot) => {
+              loans.push({
+                  id: docSnapshot.id,
+                  ...docSnapshot.data()
+              });
+          });
+          window.render();
+      }, (error) => {
+          console.error("Error al obtener los préstamos:", error);
+      });
+  }
+
+  window.handleSessionButtonClick = function() {
+      if (currentUser) {
+          window.openLogoutConfirmModal();
+      } else {
+          window.openAuthModal();
+      }
+  };
+
+  window.openLogoutConfirmModal = function() {
+      document.getElementById('logout-confirm-modal').showModal();
+  };
+
+  window.closeLogoutConfirmModal = function() {
+      document.getElementById('logout-confirm-modal').close();
+  };
+
+  window.confirmLogout = async function() {
+      window.closeLogoutConfirmModal();
+      try {
+          const { signOut } = window.authMethods;
+          await signOut(window.auth);
+          window.showToast("Has cerrado sesión correctamente.");
+      } catch (error) {
+          console.error("Error al cerrar sesión:", error);
+      }
+  };
+
+  window.openAuthModal = function() {
+      document.getElementById('auth-error-msg').style.display = 'none';
+      document.getElementById('user-auth-form').reset();
+      document.getElementById('user-auth-modal').showModal();
+  };
+
+  window.closeAuthModal = function() {
+      document.getElementById('user-auth-modal').close();
+  };
+
+  window.toggleAuthMode = function() {
+      isRegisterMode = !isRegisterMode;
+      const title = document.getElementById('auth-modal-title');
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const toggleBtn = document.getElementById('auth-toggle-btn');
+      const regNameGroup = document.getElementById('group-reg-name');
+
+      if (isRegisterMode) {
+          title.innerText = 'Crear Cuenta';
+          submitBtn.innerText = 'Registrarse e Iniciar';
+          toggleBtn.innerText = '¿Ya tienes cuenta? Inicia sesión aquí';
+          regNameGroup.style.display = 'flex';
+      } else {
+          title.innerText = 'Iniciar Sesión';
+          submitBtn.innerText = 'Entrar';
+          toggleBtn.innerText = '¿No tienes cuenta? Regístrate aquí';
+          regNameGroup.style.display = 'none';
+      }
+  };
+
+  document.getElementById('user-auth-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const authErrorMsg = document.getElementById('auth-error-msg');
+      authErrorMsg.style.display = 'none';
+
+      const { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } = window.authMethods;
+
+      try {
+          if (isRegisterMode) {
+              const name = document.getElementById('auth-name').value.trim();
+              const userCredential = await createUserWithEmailAndPassword(window.auth, email, password);
+              if (name) {
+                  await updateProfile(userCredential.user, { displayName: name });
+              }
+          } else {
+              await signInWithEmailAndPassword(window.auth, email, password);
+          }
+
+          window.closeAuthModal();
+          window.showToast("¡Sesión iniciada con éxito!");
+      } catch (error) {
+          console.error("Error de auth:", error);
+          let errorText = "Error al autenticar.";
+          if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+              errorText = "Correo o contraseña incorrectos.";
+          } else if (error.code === 'auth/email-already-in-use') {
+              errorText = "El correo ya está registrado.";
+          } else if (error.code === 'auth/weak-password') {
+              errorText = "La contraseña debe tener al menos 6 caracteres.";
+          }
+          authErrorMsg.innerText = errorText;
+          authErrorMsg.style.display = 'block';
+      }
+  });
+
+  window.showSection = function(sectionId, element) {
+      if (sectionId === 'new-loan-section' && !currentUser) {
+          window.openAuthModal();
+          return;
+      }
+
+      document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.pill-btn').forEach(btn => btn.classList.remove('active'));
+
+      document.getElementById(sectionId).classList.add('active');
+      if (element) element.classList.add('active');
+
+      if (sectionId === 'new-loan-section') {
+          if (!document.getElementById('editing-loan-id').value) {
+              document.getElementById('form-title').innerText = 'Registrar Préstamo';
+              document.getElementById('loan-days').value = 30;
+          }
+          document.getElementById('loan-error-msg').style.display = 'none';
+      }
+  };
+
+  async function saveLoan(editingId, name, phone, address, amount, interestRate, days) {
+      const loanErrorMsg = document.getElementById('loan-error-msg');
+      loanErrorMsg.style.display = 'none';
+
+      const normalizedName = name.trim().toLowerCase();
+      
+      if (!editingId) {
+          const activeLoan = loans.find(l => l.client.trim().toLowerCase() === normalizedName && l.balance > 0);
+          if (activeLoan) {
+              loanErrorMsg.innerText = `El cliente "${activeLoan.client}" ya tiene un préstamo activo de $${activeLoan.balance.toLocaleString()}.`;
+              loanErrorMsg.style.display = 'block';
+              return false;
+          }
+      }
+
+      const interestAmount = amount * (interestRate / 100);
+      const totalToPay = amount + interestAmount;
+      const dailyPayment = Math.ceil(totalToPay / days);
+
+      try {
+          const { collection, addDoc, doc, updateDoc } = window.fsMethods;
+
+          if (editingId) {
+              const loanRef = doc(window.db, "loans", editingId);
+              await updateDoc(loanRef, {
+                  client: name.trim(),
+                  phone: phone.trim(),
+                  address: address.trim(),
+                  amount: amount,
+                  interestRate: interestRate,
+                  interestAmount: interestAmount,
+                  totalToPay: totalToPay,
+                  dailyPayment: dailyPayment,
+                  balance: totalToPay,
+                  payments: [],
+                  createdAt: todayStr
+              });
+              window.showToast(`Préstamo renovado para ${name.trim()}`);
+          } else {
+              const newLoan = {
+                  client: name.trim(),
+                  phone: phone.trim(),
+                  address: address.trim(),
+                  amount: amount,
+                  interestRate: interestRate,
+                  interestAmount: interestAmount,
+                  totalToPay: totalToPay,
+                  dailyPayment: dailyPayment,
+                  balance: totalToPay,
+                  payments: [],
+                  createdAt: todayStr,
+                  userId: currentUser ? currentUser.uid : null
+              };
+              await addDoc(collection(window.db, "loans"), newLoan);
+              window.showToast(`Préstamo creado para ${name.trim()}`);
+          }
+
+          return true;
+      } catch (error) {
+          console.error("Error en Firebase:", error);
+          loanErrorMsg.innerText = "Error al guardar el préstamo.";
+          loanErrorMsg.style.display = 'block';
+          return false;
+      }
+  }
+
+  async function addPayment(loanId, amount) {
+      const loan = loans.find(l => l.id === loanId);
+      if (!loan) return false;
+
+      amount = parseFloat(amount);
+      if (amount > loan.balance) return false;
+
+      const newBalance = Math.max(0, loan.balance - amount);
+      const updatedPayments = [
+          {
+              date: getTodayDateFormatted(),
+              rawDate: new Date().toISOString(),
+              amount: amount
+          },
+          ...(loan.payments || [])
+      ];
+
+      try {
+          const { doc, updateDoc } = window.fsMethods;
+          const loanRef = doc(window.db, "loans", loanId);
+          await updateDoc(loanRef, {
+              balance: newBalance,
+              payments: updatedPayments
+          });
+          return true;
+      } catch (error) {
+          console.error("Error al abonar:", error);
+          return false;
+      }
+  }
+
+  window.requestDeleteLoan = function(loanId) {
+      if (!currentUser) {
+          window.openAuthModal();
+          return;
+      }
+      const loan = loans.find(l => l.id === loanId);
+      if (!loan) return;
+
+      pendingDeleteLoanId = loanId;
+      document.getElementById('confirm-modal-text').innerText = `¿Deseas eliminar a ${loan.client} de la ruta de cobro?`;
+      document.getElementById('confirm-modal').showModal();
+  };
+
+  window.closeConfirmModal = function() {
+      pendingDeleteLoanId = null;
+      document.getElementById('confirm-modal').close();
+  };
+
+  document.getElementById('confirm-modal-btn').addEventListener('click', async () => {
+      if (pendingDeleteLoanId) {
+          try {
+              const { doc, deleteDoc } = window.fsMethods;
+              await deleteDoc(doc(window.db, "loans", pendingDeleteLoanId));
+              window.showToast("Préstamo eliminado correctamente");
+          } catch (error) {
+              console.error("Error al eliminar:", error);
+          }
+      }
+      window.closeConfirmModal();
+  });
+
+  window.renewLoan = function(loanId) {
+      if (!currentUser) {
+          window.openAuthModal();
+          return;
+      }
+
+      const loan = loans.find(l => l.id === loanId);
+      if (!loan) return;
+
+      const newBtn = document.getElementById('btn-tab-new');
+      window.showSection('new-loan-section', newBtn);
+
+      document.getElementById('editing-loan-id').value = loan.id;
+      document.getElementById('client-name').value = loan.client;
+      document.getElementById('client-phone').value = loan.phone || '';
+      document.getElementById('client-address').value = loan.address || '';
+      document.getElementById('loan-amount').value = loan.amount;
+      document.getElementById('loan-interest').value = loan.interestRate || 20;
+      document.getElementById('loan-days').value = 30;
+      document.getElementById('form-title').innerText = `Renovar: ${loan.client}`;
+  };
+
+  function hasPaidToday(loan) {
+      if (!loan.payments || loan.payments.length === 0) return false;
+      const todayFormatted = getTodayDateFormatted();
+      return loan.payments.some(p => p.date === todayFormatted || p.date === todayStr);
+  }
+
+  function getLoanPriority(loan) {
+      if (loan.balance === 0) return 3; 
+      if (hasPaidToday(loan)) return 2; 
+      return 1; 
+  }
+
+  window.render = function() {
+      const tableBody = document.getElementById('loans-table-body');
+      const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+      tableBody.innerHTML = '';
+
+      if (!currentUser) {
+          tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 2rem 0;">Inicia sesión con tu cuenta para ver tu ruta de cobro.</td></tr>`;
+          document.getElementById('total-clients').innerText = '0';
+          document.getElementById('total-loaned').innerText = '$0';
+          document.getElementById('total-interest').innerText = '$0';
+          document.getElementById('expected-today').innerText = '$0';
+          document.getElementById('collected-today').innerText = '$0';
+          document.getElementById('collected-month').innerText = '$0';
+          document.getElementById('collected-total').innerText = '$0';
+          document.getElementById('total-pending').innerText = '$0';
+          document.getElementById('total-delayed-cuotas').innerText = '0';
+          document.getElementById('total-delayed-amount').innerText = '$0';
+          return;
+      }
+
+      let totalClients = loans.length;
+      let totalLoanedNet = 0;
+      let totalInterest = 0;
+      let expectedToday = 0;
+      let collectedToday = 0;
+      let collectedMonth = 0;
+      let collectedTotal = 0;
+      let totalPending = 0;
+
+      let totalDelayedCuotasSum = 0;
+      let totalDelayedAmountSum = 0;
+
+      const todayFormatted = getTodayDateFormatted();
+      
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      loans.forEach(loan => {
+          totalPending += loan.balance;
+          
+          const currentInterestFraction = loan.totalToPay > 0 ? (loan.balance / loan.totalToPay) : 0;
+          const activeInterest = (loan.interestAmount || (loan.totalToPay - loan.amount)) * currentInterestFraction;
+          totalInterest += activeInterest;
+
+          const totalPaidToDate = (loan.payments || []).reduce((sum, p) => sum + p.amount, 0);
+          const netLoanedForClient = Math.max(0, loan.amount - totalPaidToDate);
+          totalLoanedNet += netLoanedForClient;
+
+          let paidTodayAmount = 0;
+
+          (loan.payments || []).forEach(p => {
+              collectedTotal += p.amount;
+
+              if (p.date === todayFormatted || p.date === todayStr) {
+                  collectedToday += p.amount;
+                  paidTodayAmount += p.amount; 
+              }
+
+              let pDate;
+              if (p.rawDate) {
+                  pDate = new Date(p.rawDate);
+              } else if (p.date && p.date.includes('/')) {
+                  const parts = p.date.split('/');
+                  pDate = new Date(parts[2], parts[1] - 1, parts[0]);
+              }
+
+              if (pDate && pDate.getMonth() === currentMonth && pDate.getFullYear() === currentYear) {
+                  collectedMonth += p.amount;
+              }
+          });
+
+          if (loan.balance > 0) {
+              const pendingForToday = Math.max(0, loan.dailyPayment - paidTodayAmount);
+              expectedToday += Math.min(pendingForToday, loan.balance);
+
+              const delayedCuotas = getDelayedDays(loan);
+              if (delayedCuotas > 0) {
+                  totalDelayedCuotasSum += delayedCuotas;
+                  const delayedMoney = Math.min(delayedCuotas * loan.dailyPayment, loan.balance);
+                  totalDelayedAmountSum += delayedMoney;
+              }
+          }
+      });
+
+      let filteredLoans = loans.filter(loan => {
+          const clientMatch = loan.client.toLowerCase().includes(searchQuery);
+          const addressMatch = loan.address && loan.address.toLowerCase().includes(searchQuery);
+          return clientMatch || addressMatch;
+      });
+
+      filteredLoans.sort((a, b) => {
+          const priorityA = getLoanPriority(a);
+          const priorityB = getLoanPriority(b);
+          return priorityA - priorityB;
+      });
+
+      if (filteredLoans.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 1.5rem 0;">Sin clientes registrados</td></tr>`;
+      }
+
+      filteredLoans.forEach(loan => {
+          const paidToday = hasPaidToday(loan);
+          const isFullyPaid = loan.balance === 0;
+          const delayedCuotas = getDelayedDays(loan);
+
+          let rowClass = 'row-pending';
+          if (isFullyPaid) rowClass = 'row-paid';
+          else if (paidToday) rowClass = 'row-partially-paid';
+
+          let notifBubbleHTML = '';
+          if (!isFullyPaid && delayedCuotas > 0) {
+              notifBubbleHTML = `<div class="notification-badge" title="${delayedCuotas} cuota(s) atrasada(s)">${delayedCuotas}</div>`;
+          }
+
+          let statusTag = '';
+          if (isFullyPaid) {
+              statusTag = '<span class="badge badge-completed">Saldado</span>';
+          } else if (paidToday) {
+              statusTag = '<span class="badge badge-partially-paid">Abonado</span>';
+          } else {
+              statusTag = '<span class="badge badge-pending">Pendiente</span>';
+          }
+
+          const statusHTML = `
+              <div class="status-container">
+                  ${notifBubbleHTML}
+                  ${statusTag}
+              </div>
+          `;
+
+          let actionHTML = '-';
+          if (isFullyPaid) {
+              actionHTML = `
+                  <div class="actions-wrapper">
+                      <button class="btn btn-xs btn-primary" onclick="window.renewLoan('${loan.id}')" title="Renovar">🔄</button>
+                      <button class="btn btn-xs btn-danger" onclick="window.requestDeleteLoan('${loan.id}')" title="Eliminar">🗑️</button>
+                  </div>
+              `;
+          }
+
+          let addressSubText = loan.address ? `<div class="client-sub-text">📍 ${loan.address}</div>` : '';
+
+          const tr = document.createElement('tr');
+          tr.className = rowClass;
+          tr.innerHTML = `
+              <td>
+                  <span class="client-click" onclick="window.openPayModal('${loan.id}')" title="Hacer clic para abonar">${loan.client}</span>
+                  ${addressSubText}
+              </td>
+              <td>$${loan.dailyPayment.toLocaleString()}</td>
+              <td>$${loan.balance.toLocaleString()}</td>
+              <td>${statusHTML}</td>
+              <td style="text-align: right;">${actionHTML}</td>
+          `;
+          tableBody.appendChild(tr);
+      });
+
+      document.getElementById('total-clients').innerText = totalClients;
+      document.getElementById('total-loaned').innerText = `$${Math.round(totalLoanedNet).toLocaleString()}`;
+      document.getElementById('total-interest').innerText = `$${Math.round(totalInterest).toLocaleString()}`;
+      document.getElementById('expected-today').innerText = `$${expectedToday.toLocaleString()}`;
+      document.getElementById('collected-today').innerText = `$${collectedToday.toLocaleString()}`;
+      document.getElementById('collected-month').innerText = `$${collectedMonth.toLocaleString()}`;
+      document.getElementById('collected-total').innerText = `$${collectedTotal.toLocaleString()}`;
+      document.getElementById('total-pending').innerText = `$${totalPending.toLocaleString()}`;
+
+      document.getElementById('total-delayed-cuotas').innerText = totalDelayedCuotasSum;
+      document.getElementById('total-delayed-amount').innerText = `$${totalDelayedAmountSum.toLocaleString()}`;
+
+      if (currentActiveLoan && payModal.open) {
+          const updated = loans.find(l => l.id === currentActiveLoan.id);
+          if (updated) {
+              currentActiveLoan = updated;
+              const delayedDays = getDelayedDays(currentActiveLoan);
+              const delayText = delayedDays > 0 
+                  ? `<b style="color: var(--danger);">${delayedDays} cuota(s) atrasada(s)</b>` 
+                  : `<b style="color: var(--success);">Al día</b>`;
+
+              document.getElementById('modal-client-info').innerHTML = `Saldo: $${currentActiveLoan.balance.toLocaleString()} | Cuota: $${currentActiveLoan.dailyPayment.toLocaleString()}<br>Estado: ${delayText}`;
+              renderHistory(currentActiveLoan.payments);
+          }
+      }
+  };
+
+  document.getElementById('loan-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const editingId = document.getElementById('editing-loan-id').value;
+      const name = document.getElementById('client-name').value;
+      const phone = document.getElementById('client-phone').value;
+      const address = document.getElementById('client-address').value;
+      const amount = parseFloat(document.getElementById('loan-amount').value);
+      const interest = parseFloat(document.getElementById('loan-interest').value);
+      const days = parseInt(document.getElementById('loan-days').value);
+
+      const saved = await saveLoan(editingId, name, phone, address, amount, interest, days);
+      
+      if (saved) {
+          e.target.reset();
+          document.getElementById('editing-loan-id').value = '';
+          document.getElementById('loan-days').value = 30;
+          const routePill = document.getElementById('btn-tab-route');
+          window.showSection('route-section', routePill);
+      }
+  });
+
+  const payModal = document.getElementById('pay-modal');
+  const payErrorMsg = document.getElementById('pay-error-msg');
+
+  window.openPayModal = function(loanId) {
+      if (!currentUser) {
+          window.openAuthModal();
+          return;
+      }
+
+      currentActiveLoan = loans.find(l => l.id === loanId);
+      if (!currentActiveLoan) return;
+
+      document.getElementById('modal-loan-id').value = loanId;
+      document.getElementById('modal-client-name').innerText = currentActiveLoan.client;
+      
+      const extraInfoEl = document.getElementById('modal-client-extra');
+      extraInfoEl.innerHTML = '';
+      
+      let hasExtra = false;
+      if (currentActiveLoan.phone) {
+          hasExtra = true;
+          const cleanPhone = currentActiveLoan.phone.replace(/\D/g, '');
+          extraInfoEl.innerHTML += `
+              <div class="client-extra-item">
+                  📱 <strong>Teléfono:</strong> ${currentActiveLoan.phone}
+                  <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-wa" title="Enviar WhatsApp">💬 Chat</a>
+              </div>
+          `;
+      }
+      if (currentActiveLoan.address) {
+          hasExtra = true;
+          extraInfoEl.innerHTML += `
+              <div class="client-extra-item">
+                  📍 <strong>Dirección:</strong> ${currentActiveLoan.address}
+              </div>
+          `;
+      }
+
+      extraInfoEl.style.display = hasExtra ? 'flex' : 'none';
+
+      const delayedDays = getDelayedDays(currentActiveLoan);
+      const delayText = delayedDays > 0 
+          ? `<b style="color: var(--danger);">${delayedDays} cuota(s) atrasada(s)</b>` 
+          : `<b style="color: var(--success);">Al día</b>`;
+
+      document.getElementById('modal-client-info').innerHTML = `Saldo: $${currentActiveLoan.balance.toLocaleString()} | Cuota: $${currentActiveLoan.dailyPayment.toLocaleString()}<br>Estado: ${delayText}`;
+      
+      const payInput = document.getElementById('pay-amount');
+      const submitBtn = document.getElementById('pay-submit-btn');
+
+      if (currentActiveLoan.balance === 0) {
+          payInput.value = '';
+          payInput.disabled = true;
+          submitBtn.disabled = true;
+      } else {
+          payInput.disabled = false;
+          submitBtn.disabled = false;
+          const suggestedPay = Math.min(currentActiveLoan.dailyPayment, currentActiveLoan.balance);
+          payInput.value = suggestedPay;
+      }
+
+      payErrorMsg.style.display = 'none';
+      renderHistory(currentActiveLoan.payments);
+      payModal.showModal();
+  };
+
+  window.fillTotalPayment = function() {
+      if (currentActiveLoan && currentActiveLoan.balance > 0) {
+          document.getElementById('pay-amount').value = currentActiveLoan.balance;
+      }
+  };
+
+  function renderHistory(payments) {
+      const historyList = document.getElementById('history-list');
+      historyList.innerHTML = '';
+
+      if (!payments || payments.length === 0) {
+          historyList.innerHTML = `<span class="empty-history">No hay abonos registrados aún.</span>`;
+          return;
+      }
+
+      payments.forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'history-item';
+          item.innerHTML = `
+              <span class="history-date">${p.date}</span>
+              <span class="history-amount">+$${p.amount.toLocaleString()}</span>
+          `;
+          historyList.appendChild(item);
+      });
+  }
+
+  window.closePayModal = function() {
+      currentActiveLoan = null;
+      payModal.close();
+  };
+
+  document.getElementById('pay-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const loanId = document.getElementById('modal-loan-id').value;
+      const amount = parseFloat(document.getElementById('pay-amount').value);
+
+      if (currentActiveLoan && amount > currentActiveLoan.balance) {
+          payErrorMsg.innerText = `El abono ($${amount.toLocaleString()}) supera la deuda actual ($${currentActiveLoan.balance.toLocaleString()}).`;
+          payErrorMsg.style.display = 'block';
+          return;
+      }
+
+      const clientName = currentActiveLoan.client;
+      const success = await addPayment(loanId, amount);
+
+      if (success) {
+          window.closePayModal();
+          window.showToast(`Se le ha abonado $${amount.toLocaleString()} a ${clientName}`);
+      }
+  });
+
+  window.closeAuthModal = closeAuthModal;
+  window.closeLogoutConfirmModal = closeLogoutConfirmModal;
+  window.closeConfirmModal = closeConfirmModal;
+  window.closePayModal = closePayModal;
+</script>
+</body>
+</html>
