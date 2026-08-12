@@ -1,4 +1,4 @@
-<DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -46,7 +46,7 @@
             min-height: 100vh;
         }
 
-        /* OCULTA ABSOLUTAMENTE TODO EL SISTEMA DE ADMINISTRACIÓN SI ES MODO TARJETA CLIENTE (?card=ID) */
+        /* OCULTA TODO SI ES MODO TARJETA CLIENTE (?card=ID) */
         body.viewing-card header,
         body.viewing-card nav,
         body.viewing-card .page-section,
@@ -58,7 +58,6 @@
             display: flex !important;
         }
 
-        /* Header y Navegación Estáticos */
         header {
             display: flex;
             flex-direction: column;
@@ -82,9 +81,7 @@
             padding-right: 5rem;
         }
 
-        .brand-title span {
-            color: var(--primary);
-        }
+        .brand-title span { color: var(--primary); }
 
         .header-sub-wrapper {
             display: flex;
@@ -186,9 +183,7 @@
             color: #ffffff;
         }
 
-        .pill-btn-new:not(.active) {
-            color: var(--primary);
-        }
+        .pill-btn-new:not(.active) { color: var(--primary); }
 
         .page-section {
             display: none;
@@ -197,11 +192,8 @@
             flex: 1;
         }
 
-        .page-section.active {
-            display: flex;
-        }
+        .page-section.active { display: flex; }
 
-        /* Dashboard y Títulos de Sección */
         .section-subtitle {
             font-size: 0.85rem;
             font-weight: 700;
@@ -245,7 +237,6 @@
         .stat-value.warning { color: var(--warning); }
         .stat-value.danger { color: var(--danger); }
 
-        /* Buscador y Tabla */
         .search-box input {
             width: 100%;
             padding: 0.65rem 0.85rem;
@@ -257,9 +248,7 @@
             outline: none;
         }
 
-        .search-box input:focus {
-            border-color: var(--primary);
-        }
+        .search-box input:focus { border-color: var(--primary); }
 
         .table-card {
             background: var(--card-bg);
@@ -290,9 +279,7 @@
             vertical-align: middle;
         }
 
-        tr:last-child td {
-            border-bottom: none;
-        }
+        tr:last-child td { border-bottom: none; }
 
         .row-paid { background-color: rgba(16, 185, 129, 0.05); opacity: 0.65; }
         .row-partially-paid { background-color: rgba(59, 130, 246, 0.08); }
@@ -366,7 +353,6 @@
         .badge-partially-paid { background: rgba(59, 130, 246, 0.15); color: var(--primary); border: 1px solid rgba(59, 130, 246, 0.3); }
         .badge-completed { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
 
-        /* Formulario Responsivo */
         .form-card-container {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -407,9 +393,7 @@
             outline: none;
         }
 
-        .form-group input:focus {
-            border-color: var(--primary);
-        }
+        .form-group input:focus { border-color: var(--primary); }
 
         .form-row {
             display: flex;
@@ -438,9 +422,9 @@
         .btn-danger { background: var(--danger); color: #fff; }
 
         .btn-xs {
-            padding: 0.15rem 0.35rem;
-            font-size: 0.65rem;
-            border-radius: 4px;
+            padding: 0.2rem 0.4rem;
+            font-size: 0.7rem;
+            border-radius: 6px;
         }
 
         .actions-wrapper {
@@ -568,9 +552,7 @@
             color: var(--text-muted);
         }
 
-        .client-extra-item strong {
-            color: var(--text-main);
-        }
+        .client-extra-item strong { color: var(--text-main); }
 
         .btn-wa {
             background: #25d366;
@@ -599,9 +581,7 @@
             text-decoration: none;
         }
 
-        footer a:hover {
-            text-decoration: underline;
-        }
+        footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -647,7 +627,7 @@
         </div>
     </section>
 
-    <!-- SECCIÓN 2: MÉTRICAS DE COBRANZA -->
+    <!-- SECCIÓN 2: MÉTRICAS -->
     <section id="dashboard-section" class="page-section">
         <h4 class="section-subtitle">Recaudación de Abonos</h4>
         <div class="dashboard-grid">
@@ -748,7 +728,7 @@
         </div>
     </section>
 
-    <!-- VISTA EXCLUSIVA Y EXCLUSIVAMENTE PARA EL CLIENTE (?card=ID) -->
+    <!-- VISTA TARJETA CLIENTE (?card=ID) -->
     <div id="client-card-view" style="display: none; flex-direction: column; gap: 1rem; flex: 1; padding-top: 1rem;">
         <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);">
             
@@ -795,16 +775,16 @@
         </div>
     </div>
 
-    <!-- FOOTER / POLÍTICA DE PRIVACIDAD -->
+    <!-- FOOTER -->
     <footer>
         <a href="privacidad.html" target="_blank">Política de Privacidad</a>
     </footer>
 </div>
 
-<!-- TOAST DE NOTIFICACIÓN FLOTANTE -->
+<!-- TOAST FLOTANTE -->
 <div id="toast-notification" class="toast-notification"></div>
 
-<!-- MODAL: LOGIN / REGISTRO FIREBASE AUTH -->
+<!-- MODAL: LOGIN / REGISTRO FIREBASE -->
 <dialog id="user-auth-modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -836,7 +816,7 @@
     </div>
 </dialog>
 
-<!-- MODAL: CONFIRMAR CIERRE DE SESIÓN -->
+<!-- MODAL: CIERRE DE SESIÓN -->
 <dialog id="logout-confirm-modal">
     <div class="modal-content">
         <h3 style="font-size: 1.05rem;">Cerrar Sesión</h3>
@@ -845,6 +825,40 @@
             <button class="btn btn-secondary" onclick="closeLogoutConfirmModal()">Cancelar</button>
             <button class="btn btn-danger" onclick="confirmLogout()">Sí, salir</button>
         </div>
+    </div>
+</dialog>
+
+<!-- MODAL: NUEVO! EDITAR DATOS DEL CLIENTE -->
+<dialog id="edit-client-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="font-size: 1.05rem;">Editar Datos del Cliente</h3>
+            <button class="modal-close" onclick="closeEditClientModal()">✕</button>
+        </div>
+        
+        <form id="edit-client-form" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <input type="hidden" id="edit-client-id">
+
+            <div class="form-group">
+                <label for="edit-client-name">Nombre del Cliente</label>
+                <input type="text" id="edit-client-name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-client-phone">Celular / WhatsApp</label>
+                <input type="tel" id="edit-client-phone" placeholder="Ej: 3001234567">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-client-address">Dirección</label>
+                <input type="text" id="edit-client-address" placeholder="Ej: Calle 10 # 4-20">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.4rem; margin-top: 0.5rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeEditClientModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
     </div>
 </dialog>
 
@@ -898,7 +912,7 @@
     </div>
 </dialog>
 
-<!-- SDK DE FIREBASE AUTH & FIRESTORE -->
+<!-- SDK FIREBASE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { 
@@ -973,7 +987,7 @@
 
   window.addEventListener('offline', () => {
       updateNetworkStatus();
-      window.showToast("Modo sin conexión activado. Tus abonos se guardarán localmente.");
+      window.showToast("Modo sin conexión activado.");
   });
 
   updateNetworkStatus();
@@ -1024,7 +1038,6 @@
       return Math.max(0, delayedDays);
   }
 
-  /* VERIFICA SI LA URL TRAE UN ?card=ID Y MUESTRA EXCLUSIVAMENTE LA TARJETA DEL CLIENTE */
   function checkPublicCardView() {
       const urlParams = new URLSearchParams(window.location.search);
       const cardId = urlParams.get('card');
@@ -1097,7 +1110,6 @@
       }
   }
 
-  /* GENERA EL ENLACE EXACTO A LA TARJETA PÚBLICA DEL CLIENTE (?card=ID) */
   window.shareCardLinkWhatsApp = function() {
       if (!currentActiveLoan) return;
 
@@ -1107,7 +1119,6 @@
           return;
       }
 
-      // Obtiene la dirección actual completa dinámicamente y le añade la variable ?card=ID
       const cardUrl = `${window.location.origin}${window.location.pathname}?card=${currentActiveLoan.id}`;
 
       const mensaje = 
@@ -1283,6 +1294,50 @@ _¡Gracias por tu puntualidad!_`;
           }
           authErrorMsg.innerText = errorText;
           authErrorMsg.style.display = 'block';
+      }
+  });
+
+  /* NUEVO! FUNCIONES PARA EDITAR CLIENTE (TELÉFONO Y DIRECCIÓN) */
+  window.openEditClientModal = function(loanId) {
+      if (!currentUser) {
+          window.openAuthModal();
+          return;
+      }
+      const loan = loans.find(l => l.id === loanId);
+      if (!loan) return;
+
+      document.getElementById('edit-client-id').value = loan.id;
+      document.getElementById('edit-client-name').value = loan.client;
+      document.getElementById('edit-client-phone').value = loan.phone || '';
+      document.getElementById('edit-client-address').value = loan.address || '';
+
+      document.getElementById('edit-client-modal').showModal();
+  };
+
+  window.closeEditClientModal = function() {
+      document.getElementById('edit-client-modal').close();
+  };
+
+  document.getElementById('edit-client-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('edit-client-id').value;
+      const newName = document.getElementById('edit-client-name').value.trim();
+      const newPhone = document.getElementById('edit-client-phone').value.trim();
+      const newAddress = document.getElementById('edit-client-address').value.trim();
+
+      try {
+          const { doc, updateDoc } = window.fsMethods;
+          const loanRef = doc(window.db, "loans", id);
+          await updateDoc(loanRef, {
+              client: newName,
+              phone: newPhone,
+              address: newAddress
+          });
+          window.closeEditClientModal();
+          window.showToast("Datos del cliente actualizados correctamente");
+      } catch (error) {
+          console.error("Error al actualizar cliente:", error);
+          window.showToast("Ocurrió un error al guardar los cambios.");
       }
   });
 
@@ -1600,12 +1655,19 @@ _¡Gracias por tu puntualidad!_`;
               </div>
           `;
 
-          let actionHTML = '-';
+          let actionHTML = '';
           if (isFullyPaid) {
               actionHTML = `
                   <div class="actions-wrapper">
+                      <button class="btn btn-xs btn-secondary" onclick="window.openEditClientModal('${loan.id}')" title="Editar teléfono/dirección">✏️</button>
                       <button class="btn btn-xs btn-primary" onclick="window.renewLoan('${loan.id}')" title="Renovar">🔄</button>
                       <button class="btn btn-xs btn-danger" onclick="window.requestDeleteLoan('${loan.id}')" title="Eliminar">🗑️</button>
+                  </div>
+              `;
+          } else {
+              actionHTML = `
+                  <div class="actions-wrapper">
+                      <button class="btn btn-xs btn-secondary" onclick="window.openEditClientModal('${loan.id}')" title="Editar teléfono/dirección">✏️</button>
                   </div>
               `;
           }
