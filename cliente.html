@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estado de Cuenta - PayControl</title>
+  
+  <!-- Firebase (Solo si usas Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+      margin: 0;
+      padding: 15px;
+      display: flex;
+      justify-content: center;
+    }
+    .card-container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .progress-bar-bg {
+      background-color: #e5e7eb;
+      border-radius: 8px;
+      height: 12px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-bar-fill {
+      background-color: #10b981;
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card-container">
+    <h2 id="cliente-nombre">Cargando...</h2>
+    <p>Estado de cuenta digital</p>
+    <hr>
+    
+    <p><strong>Monto Total:</strong> $<span id="monto-total">0</span></p>
+    <p><strong>Saldo Pendiente:</strong> $<span id="saldo-pendiente">0</span></p>
+    
+    <p><strong>Cuotas:</strong> <span id="cuotas-info">0 / 0</span></p>
+    <div class="progress-bar-bg">
+      <div id="barra-progreso" class="progress-bar-fill"></div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Configuración de Firebase (Coloca tus credenciales de Firestore aquí)
+    const firebaseConfig = {
+      // apiKey: "...",
+      // projectId: "...",
+    };
+    // firebase.initializeApp(firebaseConfig);
+    // const db = firebase.firestore();
+
+    // 2. Obtener el ID de la tarjeta desde el enlace
+    const params = new URLSearchParams(window.location.search);
+    const cardId = params.get("card");
+
+    if (cardId) {
+      // 3. Consultar Firestore para traer los datos del cliente
+      /*
+      db.collection("tarjetas").doc(cardId).get().then((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          renderTarjeta(data);
+        } else {
+          document.getElementById("cliente-nombre").textContent = "Tarjeta no encontrada";
+        }
+      });
+      */
+    }
+
+    function renderTarjeta(data) {
+      document.getElementById("cliente-nombre").textContent = data.nombre;
+      document.getElementById("monto-total").textContent = data.monto;
+      document.getElementById("saldo-pendiente").textContent = data.saldo;
+      document.getElementById("cuotas-info").textContent = `${data.cuotasPagadas} / ${data.totalCuotas}`;
+      
+      const porcentaje = (data.cuotasPagadas / data.totalCuotas) * 100;
+      document.getElementById("barra-progreso").style.width = `${porcentaje}%`;
+    }
+  </script>
+</body>
+</html>
