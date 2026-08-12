@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidad - PayControl</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 1.5rem 1rem;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .policy-container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .policy-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.85rem;
+        }
+
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .brand-title span {
+            color: var(--primary);
+        }
+
+        .back-btn {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--primary);
+            border-radius: 6px;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .policy-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            color: var(--text-main);
+            margin-bottom: 0.2rem;
+        }
+
+        .update-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 0.95rem;
+            color: var(--primary);
+            margin-top: 0.5rem;
+        }
+
+        p, li {
+            font-size: 0.825rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        ul {
+            padding-left: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        strong {
+            color: var(--text-main);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1rem 0;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--card-border);
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="policy-container">
+    <header class="policy-header">
+        <div class="brand-title"><span>PayControl</span></div>
+        <a href="go:poli" class="back-btn">← Ruta</a>
+    </header>
+
+    <div class="policy-card">
+        <div>
+            <h1>Política de Privacidad</h1>
+            <div class="update-date">Última actualización: Agosto de 2026</div>
+        </div>
+
+        <p>En <strong>PayControl</strong> valoramos y protegemos la privacidad de los datos de nuestros usuarios y de los clientes gestionados en la aplicación. Esta Política de Privacidad explica qué información recopilamos, cómo la utilizamos y cuáles son tus derechos.</p>
+
+        <h2>1. Información que Recopilamos</h2>
+        <p>Para el funcionamiento operativo de la plataforma, podemos recopilar los siguientes datos:</p>
+        <ul>
+            <li><strong>Datos de Cuenta:</strong> Correo electrónico y nombre de usuario proporcionados al registrarte mediante autenticación segura.</li>
+            <li><strong>Información de Cobranza:</strong> Registros de préstamos, nombres de clientes, números de contacto, direcciones, montos e historial de abonos introducidos de forma manual por ti.</li>
+        </ul>
+
+        <h2>2. Uso de la Información</h2>
+        <p>Los datos recopilados son utilizados exclusivamente para:</p>
+        <ul>
+            <li>Gestionar tu cuenta de usuario y permitir el acceso seguro a tu ruta de cobro.</li>
+            <li>Sincronizar y almacenar tu información financiera de forma local y en la nube mediante infraestructura segura (Firebase).</li>
+            <li>Calcular métricas de negocio, balances diarios y mensuales para el control de tu cartera.</li>
+        </ul>
+
+        <h2>3. Almacenamiento y Seguridad</h2>
+        <p>Tus datos son almacenados de forma encriptada utilizando servicios de bases de datos en la nube de alta seguridad. Implementamos reglas de acceso para garantizar que únicamente tú puedas visualizar y administrar la información de tus clientes.</p>
+
+        <h2>4. Compartir Información con Terceros</h2>
+        <p><strong>PayControl</strong> no vende, comercializa ni transfiere tus datos personales ni la información financiera de tus clientes a terceros bajo ninguna circunstancia.</p>
+
+        <h2>5. Tus Derechos</h2>
+        <p>Puedes acceder, modificar o eliminar la totalidad de tus datos y registros de préstamos directamente desde la interfaz de la aplicación en cualquier momento. Si decides eliminar tu cuenta, los datos asociados podrán ser removidos permanentemente de nuestros servidores.</p>
+
+        <h2>6. Contacto</h2>
+        <p>Si tienes dudas, preguntas o solicitudes con respecto a esta Política de Privacidad, puedes ponerte en contacto a través de los canales de soporte habituales de la aplicación.</p>
+    </div>
+
+    <footer>
+        © 2026 PayControl. Todos los derechos reservados.
+    </footer>
+</div>
+
+</body>
+</html>
