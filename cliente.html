@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estado de Cuenta - PayControl</title>
   
-  <!-- Firebase (Solo si usas Firestore) -->
+  <!-- Configuración PWA y iOS -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#121824">
+  <link rel="apple-touch-icon" href="icon.png">
+
+  <!-- Firebase (v8) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -39,6 +44,17 @@
       width: 0%;
       transition: width 0.3s;
     }
+    .btn-notif {
+      margin-top: 15px;
+      width: 100%;
+      padding: 10px;
+      background-color: #121824;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -55,35 +71,46 @@
     <div class="progress-bar-bg">
       <div id="barra-progreso" class="progress-bar-fill"></div>
     </div>
+
+    <!-- Botón para activar notificaciones si aún no están concedidas -->
+    <button id="btn-notificaciones" class="btn-notif" style="display: none;" onclick="solicitarPermisoNotificaciones()">
+      🔔 Activar Notificaciones de Pago
+    </button>
   </div>
 
   <script>
-    // 1. Configuración de Firebase (Coloca tus credenciales de Firestore aquí)
+    // 1. Configuración de Firebase
     const firebaseConfig = {
       // apiKey: "...",
       // projectId: "...",
     };
-    // firebase.initializeApp(firebaseConfig);
-    // const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    // 2. Obtener el ID de la tarjeta desde el enlace
+    // 2. Variables de control
+    let saldoAnterior = null;
+    let esPrimeraCarga = true;
+
+    // 3. Obtener el ID de la tarjeta desde el enlace
     const params = new URLSearchParams(window.location.search);
     const cardId = params.get("card");
 
     if (cardId) {
-      // 3. Consultar Firestore para traer los datos del cliente
-      /*
-      db.collection("tarjetas").doc(cardId).get().then((doc) => {
+      // Usamos onSnapshot para escuchar en TIEMPO REAL cuando se registre un abono
+      db.collection("tarjetas").doc(cardId).onSnapshot((doc) => {
         if (doc.exists) {
           const data = doc.data();
           renderTarjeta(data);
+          verificarAbono(data.saldo);
         } else {
           document.getElementById("cliente-nombre").textContent = "Tarjeta no encontrada";
         }
+      }, (error) => {
+        console.error("Error escuchando cambios:", error);
       });
-      */
     }
 
+    // Renderizar datos en pantalla
     function renderTarjeta(data) {
       document.getElementById("cliente-nombre").textContent = data.nombre;
       document.getElementById("monto-total").textContent = data.monto;
@@ -93,6 +120,68 @@
       const porcentaje = (data.cuotasPagadas / data.totalCuotas) * 100;
       document.getElementById("barra-progreso").style.width = `${porcentaje}%`;
     }
+
+    // 4. Lógica de detección de abonos y disparo de notificación
+    function verificarAbono(nuevoSaldo) {
+      // Ignorar la primera carga para evitar notificar al abrir la web
+      if (esPrimeraCarga) {
+        saldoAnterior = nuevoSaldo;
+        esPrimeraCarga = false;
+        return;
+      }
+
+      // Si el saldo disminuyó, se registró un abono
+      if (saldoAnterior !== null && nuevoSaldo < saldoAnterior) {
+        const abonoRealizado = saldoAnterior - nuevoSaldo;
+        lanzarNotificacionAbono(abonoRealizado, nuevoSaldo);
+      }
+
+      saldoAnterior = nuevoSaldo;
+    }
+
+    function lanzarNotificacionAbono(montoAbonado, nuevoSaldo) {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.showNotification('¡Abono Confirmado! 💵', {
+            body: `Se ha registrado un pago de $${montoAbonado}. Tu nuevo saldo es: $${nuevoSaldo}`,
+            icon: 'icon.png',
+            badge: 'icon.png',
+            vibrate: [200, 100, 200]
+          });
+        });
+      }
+    }
+
+    // 5. Registro de Service Worker y gestión de permisos
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('Service Worker listo'))
+          .catch(err => console.error('Error en Service Worker:', err));
+      });
+    }
+
+    function comprobarPermisoNotificaciones() {
+      if ('Notification' in window) {
+        if (Notification.permission === 'default') {
+          document.getElementById('btn-notificaciones').style.display = 'block';
+        }
+      }
+    }
+
+    function solicitarPermisoNotificaciones() {
+      if ('Notification' in window) {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            document.getElementById('btn-notificaciones').style.display = 'none';
+            alert('¡Notificaciones activadas con éxito!');
+          }
+        });
+      }
+    }
+
+    // Comprobar estado de permisos al iniciar
+    comprobarPermisoNotificaciones();
   </script>
 </body>
 </html>
