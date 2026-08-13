@@ -1137,7 +1137,6 @@
       }
   }
 
-  // COMPARTIR POR WHATSAPP MEDIANTE LA RUTA EXACTA DEL REPOSITORIO
   window.shareCardLinkWhatsApp = function() {
       if (!currentActiveLoan) return;
 
@@ -1346,12 +1345,19 @@ _¡Gracias por tu pago!_`;
       document.getElementById('edit-client-modal').close();
   };
 
+  // MANEJADOR DE EDICIÓN CORREGIDO CON SEGURIDAD PARA FIREBASE
   document.getElementById('edit-client-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      
       const id = document.getElementById('edit-client-id').value;
       const newName = document.getElementById('edit-client-name').value.trim();
       const newPhone = document.getElementById('edit-client-phone').value.trim();
       const newAddress = document.getElementById('edit-client-address').value.trim();
+
+      if (!newName) {
+          window.showToast("El nombre del cliente no puede estar vacío.");
+          return;
+      }
 
       if (!validarWhatsApp(newPhone)) {
           return;
@@ -1360,11 +1366,13 @@ _¡Gracias por tu pago!_`;
       try {
           const { doc, updateDoc } = window.fsMethods;
           const loanRef = doc(window.db, "loans", id);
+          
           await updateDoc(loanRef, {
               client: newName,
               phone: newPhone,
               address: newAddress
           });
+          
           window.closeEditClientModal();
           window.showToast("Datos del cliente actualizados correctamente");
       } catch (error) {
