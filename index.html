@@ -1137,7 +1137,7 @@
       }
   }
 
-  // COMPARTIR POR WHATSAPP MEDIANTE EL PARÁMETRO ID
+  // COMPARTIR POR WHATSAPP MEDIANTE LA RUTA EXACTA DEL REPOSITORIO
   window.shareCardLinkWhatsApp = function() {
       if (!currentActiveLoan) return;
 
@@ -1147,7 +1147,7 @@
           return;
       }
 
-      const baseUrl = "https://control8-wq.github.io/cliente.html";
+      const baseUrl = "https://paycontrol8-wq.github.io/PayControl-/index.html";
       const cardUrl = `${baseUrl}?id=${currentActiveLoan.id}`;
 
       const mensaje = 
