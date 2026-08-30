@@ -920,7 +920,7 @@
 
 <!-- SDK FIREBASE -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
   import { 
       getAuth, 
       createUserWithEmailAndPassword, 
@@ -928,7 +928,7 @@
       signOut, 
       onAuthStateChanged,
       updateProfile 
-  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
   import { 
       initializeFirestore,
       persistentLocalCache,
@@ -942,15 +942,15 @@
       deleteDoc,
       query,
       where
-  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyDdUMd5cW0yxFlpHjV4fPIcRlnY0a8KrCI",
-    authDomain: "pagodiario-43125.firebaseapp.com",
-    projectId: "pagodiario-43125",
-    storageBucket: "pagodiario-43125.firebasestorage.app",
-    messagingSenderId: "596142638528",
-    appId: "1:596142638528:web:98881bd703b87796a27425"
+    apiKey: "AIzaSyBqHQ-cYu4I15GkVkVyGBf3pVtCXSxEUgY",
+    authDomain: "paycontrol-76ca4.firebaseapp.com",
+    projectId: "paycontrol-76ca4",
+    storageBucket: "paycontrol-76ca4.firebasestorage.app",
+    messagingSenderId: "1094457662207",
+    appId: "1:1094457662207:web:a45152d6cf03d9036a0aca"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -1345,7 +1345,6 @@ _¡Gracias por tu pago!_`;
       document.getElementById('edit-client-modal').close();
   };
 
-  // MANEJADOR DE EDICIÓN CORREGIDO CON SEGURIDAD PARA FIREBASE
   document.getElementById('edit-client-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       
