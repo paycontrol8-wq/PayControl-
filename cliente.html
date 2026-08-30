@@ -10,51 +10,80 @@
   <meta name="theme-color" content="#121824">
   <link rel="apple-touch-icon" href="icono.jpg">
 
-  <!-- Firebase (v8) -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
       margin: 0;
       padding: 15px;
       display: flex;
       justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
     }
     .card-container {
-      background: white;
+      background: #1e293b;
+      border: 1px solid #334155;
       padding: 20px;
       border-radius: 12px;
       max-width: 400px;
       width: 100%;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    h2 {
+      margin-top: 0;
+      color: #3b82f6;
+    }
+    .subtitle {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-bottom: 10px;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid #334155;
+      margin: 15px 0;
+    }
+    p {
+      font-size: 0.95rem;
+      margin: 8px 0;
+      display: flex;
+      justify-content: space-between;
+    }
+    p strong {
+      color: #94a3b8;
     }
     .progress-bar-bg {
-      background-color: #e5e7eb;
+      background-color: #0f172a;
+      border: 1px solid #334155;
       border-radius: 8px;
       height: 12px;
       overflow: hidden;
-      margin: 10px 0;
+      margin: 15px 0;
     }
     .progress-bar-fill {
       background-color: #10b981;
       height: 100%;
       width: 0%;
-      transition: width 0.3s;
+      transition: width 0.3s ease;
     }
     .btn-notif {
       margin-top: 15px;
       width: 100%;
       padding: 12px;
-      background-color: #121824;
+      background-color: #3b82f6;
       color: #fff;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
       font-size: 14px;
+      transition: background 0.2s;
+    }
+    .btn-notif:hover {
+      background-color: #2563eb;
     }
   </style>
 </head>
@@ -62,13 +91,13 @@
 
   <div class="card-container">
     <h2 id="cliente-nombre">Cargando...</h2>
-    <p>Estado de cuenta digital</p>
+    <div class="subtitle">Estado de cuenta digital</div>
     <hr>
     
     <p><strong>Monto Total:</strong> $<span id="monto-total">0</span></p>
     <p><strong>Saldo Pendiente:</strong> $<span id="saldo-pendiente">0</span></p>
     
-    <p><strong>Cuotas:</strong> <span id="cuotas-info">0 / 0</span></p>
+    <p><strong>Progreso Pagos:</strong> <span id="cuotas-info">0%</span></p>
     <div class="progress-bar-bg">
       <div id="barra-progreso" class="progress-bar-fill"></div>
     </div>
@@ -79,59 +108,100 @@
     </button>
   </div>
 
-  <script>
-    // 1. Configuración de Firebase (Coloca tus credenciales)
+  <!-- Firebase SDK v12 Modular -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import { 
+        initializeFirestore, 
+        persistentLocalCache, 
+        persistentMultipleTabManager, 
+        doc, 
+        onSnapshot 
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+    // 1. Configuración de Firebase
     const firebaseConfig = {
-      // apiKey: "...",
-      // projectId: "...",
+      apiKey: "AIzaSyBqHQ-cYu4I15GkVkVyGBf3pVtCXSxEUgY",
+      authDomain: "paycontrol-76ca4.firebaseapp.com",
+      projectId: "paycontrol-76ca4",
+      storageBucket: "paycontrol-76ca4.firebasestorage.app",
+      messagingSenderId: "1094457662207",
+      appId: "1:1094457662207:web:a45152d6cf03d9036a0aca"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+
+    const app = initializeApp(firebaseConfig);
+    const db = initializeFirestore(app, {
+        localCache: persistentLocalCache({
+            tabManager: persistentMultipleTabManager()
+        })
+    });
 
     // 2. Control de estado y primera carga
     let saldoAnterior = null;
     let esPrimeraCarga = true;
 
-    // 3. Obtener el ID de la tarjeta desde el enlace
+    // 3. Obtener el ID desde el parámetro ?id= ó ?card=
     const params = new URLSearchParams(window.location.search);
-    const cardId = params.get("card");
+    const cardId = params.get("id") || params.get("card");
 
     if (cardId) {
-      // Escuchar cambios en TIEMPO REAL en Firestore
-      db.collection("tarjetas").doc(cardId).onSnapshot((doc) => {
-        if (doc.exists) {
-          const data = doc.data();
+      // Intentar primero en la colección "loans" (principal) y luego en "tarjetas" como fallback
+      const docRef = doc(db, "loans", cardId);
+      
+      onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
           renderTarjeta(data);
-          verificarAbono(data.saldo);
+          verificarAbono(data.balance ?? data.saldo ?? 0);
         } else {
-          document.getElementById("cliente-nombre").textContent = "Tarjeta no encontrada";
+          // Si no existe en "loans", intenta buscar en "tarjetas" por compatibilidad
+          const fallbackRef = doc(db, "tarjetas", cardId);
+          onSnapshot(fallbackRef, (fallbackSnap) => {
+            if (fallbackSnap.exists()) {
+              const data = fallbackSnap.data();
+              renderTarjeta(data);
+              verificarAbono(data.saldo ?? 0);
+            } else {
+              document.getElementById("cliente-nombre").textContent = "Tarjeta no encontrada";
+            }
+          });
         }
       }, (error) => {
         console.error("Error escuchando la tarjeta:", error);
       });
+    } else {
+      document.getElementById("cliente-nombre").textContent = "Enlace inválido";
     }
 
     // Renderizar los datos en la interfaz
     function renderTarjeta(data) {
-      document.getElementById("cliente-nombre").textContent = data.nombre;
-      document.getElementById("monto-total").textContent = Number(data.monto).toLocaleString();
-      document.getElementById("saldo-pendiente").textContent = Number(data.saldo).toLocaleString();
-      document.getElementById("cuotas-info").textContent = `${data.cuotasPagadas} / ${data.totalCuotas}`;
-      
-      const porcentaje = (data.cuotasPagadas / data.totalCuotas) * 100;
+      const nombre = data.client || data.nombre || "Cliente";
+      const montoTotal = data.totalToPay || data.monto || 0;
+      const saldo = data.balance !== undefined ? data.balance : (data.saldo || 0);
+
+      document.getElementById("cliente-nombre").textContent = nombre;
+      document.getElementById("monto-total").textContent = Number(montoTotal).toLocaleString();
+      document.getElementById("saldo-pendiente").textContent = Number(saldo).toLocaleString();
+
+      // Cálculo del porcentaje pagado
+      let porcentaje = 0;
+      if (montoTotal > 0) {
+        const pagado = montoTotal - saldo;
+        porcentaje = Math.min(100, Math.max(0, Math.round((pagado / montoTotal) * 100)));
+      }
+
+      document.getElementById("cuotas-info").textContent = `${porcentaje}% completado`;
       document.getElementById("barra-progreso").style.width = `${porcentaje}%`;
     }
 
     // 4. Lógica para detectar abonos y lanzar notificación
     function verificarAbono(nuevoSaldo) {
-      // Evitamos notificar cuando el cliente acaba de abrir la app
       if (esPrimeraCarga) {
         saldoAnterior = nuevoSaldo;
         esPrimeraCarga = false;
         return;
       }
 
-      // Si el saldo disminuye, significa que hubo un abono
       if (saldoAnterior !== null && nuevoSaldo < saldoAnterior) {
         const abonoRealizado = saldoAnterior - nuevoSaldo;
         lanzarNotificacionAbono(abonoRealizado, nuevoSaldo);
@@ -173,7 +243,7 @@
       }
     }
 
-    function solicitarPermisoNotificaciones() {
+    window.solicitarPermisoNotificaciones = function() {
       if ('Notification' in window) {
         Notification.requestPermission().then(permission => {
           if (permission === 'granted') {
@@ -182,7 +252,7 @@
           }
         });
       }
-    }
+    };
 
     // Verificar permisos al iniciar
     comprobarPermisoNotificaciones();
